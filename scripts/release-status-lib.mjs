@@ -378,7 +378,7 @@ export function renderHtml(rows, generatedAt) {
     <div class="tiles">
       ${tile('live', '公開中', live)}
       ${tile('review', '審査中', review)}
-      ${tile(warn ? 'warn' : 'ok', warn ? '要確認' : '要確認なし', warn)}
+      ${tile(warn ? 'warn' : 'ok', '要確認', warn)}
     </div>
   </div>
   <div class="grid">
