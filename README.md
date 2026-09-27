@@ -41,7 +41,7 @@ gitはローカルのrefを見るだけなので、最新にしたい場合は�
 
 - `src/data/apps.ts` — アプリデータ（型定義含む）
 - `src/data/site.ts` — サイト名・説明・GitHub URL
-- `src/components/` — Header / Hero / AppsSection / AppCard / About / Footer
+- `src/components/` — Header / Hero（+ Landscape: 風景イラストSVG）/ AppsSection / AppCard / Footer（About を含む）
 - `src/pages/` — Home（`index.html`）/ Privacy（`privacy/index.html`）
 
 ## デプロイ

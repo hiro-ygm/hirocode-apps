@@ -1,4 +1,3 @@
-import { About } from '../components/About'
 import { AppsSection } from '../components/AppsSection'
 import { Footer } from '../components/Footer'
 import { Header } from '../components/Header'
@@ -14,7 +13,6 @@ export function Home() {
       <main id="main">
         <Hero />
         <AppsSection />
-        <About />
       </main>
       <Footer root="./" />
     </>

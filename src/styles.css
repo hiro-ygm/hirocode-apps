@@ -14,6 +14,21 @@
   --dev-ink: #34496b;
   --radius: 18px;
   --shadow: 0 1px 2px rgb(31 29 26 / 0.04), 0 4px 16px rgb(31 29 26 / 0.05);
+  --hero-bg: #f3ece1;
+  --scene-cloud: #ffffff;
+  --scene-sun: #f2c26b;
+  --scene-hill-1: #b9cba6;
+  --scene-hill-2: #cfdcbd;
+  --scene-hill-3: #e1e8d3;
+  --scene-path: #efe4cf;
+  --scene-tree: #86a674;
+  --scene-trunk: #8a6a4f;
+  --scene-wall: #fffaf3;
+  --scene-wall-side: #eadfce;
+  --scene-roof: var(--accent);
+  --scene-roof-edge: #8f3f1f;
+  --scene-door: #5c574f;
+  --scene-window: #a9c2d6;
   color-scheme: light;
 }
 
@@ -33,6 +48,21 @@
     --dev-bg: #252d3b;
     --dev-ink: #aebfe0;
     --shadow: none;
+    --hero-bg: #211e1b;
+    --scene-cloud: #3a3530;
+    --scene-sun: #c99a4a;
+    --scene-hill-1: #34402f;
+    --scene-hill-2: #2c3528;
+    --scene-hill-3: #262c22;
+    --scene-path: #3d372f;
+    --scene-tree: #4c6441;
+    --scene-trunk: #5a4636;
+    --scene-wall: #d9d0c3;
+    --scene-wall-side: #aea393;
+    --scene-roof: #b4532a;
+    --scene-roof-edge: #7c3517;
+    --scene-door: #3a3530;
+    --scene-window: #6f8799;
     color-scheme: dark;
   }
 }
@@ -130,9 +160,9 @@ a {
 
 .container {
   width: 100%;
-  max-width: 1080px;
+  max-width: 1320px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 24px;
 }
 
 @media (max-width: 360px) {
@@ -156,100 +186,277 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  height: 60px;
+  height: 64px;
 }
 
 .site-logo {
-  font-weight: 700;
-  font-size: 1.05rem;
+  font-size: 1.35rem;
   letter-spacing: 0.01em;
   text-decoration: none;
   white-space: nowrap;
 }
 
+.site-logo__main {
+  font-weight: 800;
+}
+
+.site-logo__sub {
+  font-weight: 400;
+  color: var(--muted);
+}
+
 .site-nav {
   display: flex;
-  gap: 4px;
+  gap: 8px;
 }
 
 .site-nav a {
+  position: relative;
   display: block;
-  padding: 6px 12px;
-  border-radius: 999px;
+  padding: 8px 10px;
   color: var(--muted);
   font-size: 0.95rem;
-  font-weight: 500;
+  font-weight: 600;
   text-decoration: none;
+}
+
+.site-nav a::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 2px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transition: transform 0.2s;
 }
 
 .site-nav a:hover {
   color: var(--ink);
-  background: var(--accent-soft);
+}
+
+.site-nav a:hover::after {
+  transform: scaleX(1);
 }
 
 .site-nav a.site-nav__dev {
   border: 1px dashed var(--muted);
+  border-radius: 999px;
 }
 
 /* Hero */
 .hero {
-  padding: 72px 0 48px;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--bg) 0%, var(--hero-bg) 100%);
+  border-bottom: 1px solid var(--line);
+}
+
+.hero__art {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  width: min(66%, 980px);
+  height: 100%;
+  /* 左端を溶かして、切り取った丘や雲の断面を見せない */
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 22%);
+  mask-image: linear-gradient(to right, transparent, #000 22%);
+}
+
+.hero__inner {
+  position: relative;
+  padding-top: 64px;
+  padding-bottom: 72px;
 }
 
 .hero__eyebrow {
-  color: var(--accent);
-  font-weight: 700;
-  font-size: 0.9rem;
-  letter-spacing: 0.04em;
+  display: inline-block;
+  position: relative;
+  color: var(--muted);
+  font-size: 1.05rem;
+  letter-spacing: 0.12em;
+  transform: rotate(-2deg);
+  transform-origin: left center;
+}
+
+.hero__scribble {
+  position: absolute;
+  left: 0;
+  bottom: -8px;
+  width: 62%;
+  height: 10px;
+  overflow: visible;
+}
+
+.hero__scribble path {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  stroke-linecap: round;
 }
 
 .hero__title {
-  margin-top: 10px;
-  font-size: clamp(1.6rem, 5.2vw, 2.6rem);
-  line-height: 1.35;
-  letter-spacing: 0.01em;
+  margin-top: 22px;
+  font-size: clamp(2.2rem, 7vw, 4rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
 }
 
 .hero__lead {
-  margin-top: 14px;
+  margin-top: 18px;
   color: var(--muted);
-  font-size: 1.02rem;
+  font-size: 1.05rem;
 }
 
-@media (max-width: 640px) {
+.scene-cloud {
+  fill: var(--scene-cloud);
+}
+
+.scene-sun {
+  fill: var(--scene-sun);
+}
+
+.scene-hill-1 {
+  fill: var(--scene-hill-1);
+}
+
+.scene-hill-2 {
+  fill: var(--scene-hill-2);
+}
+
+.scene-hill-3 {
+  fill: var(--scene-hill-3);
+}
+
+.scene-path {
+  fill: var(--scene-path);
+}
+
+.scene-tree {
+  fill: var(--scene-tree);
+}
+
+.scene-tree .scene-trunk {
+  fill: var(--scene-trunk);
+}
+
+.scene-wall {
+  fill: var(--scene-wall);
+}
+
+.scene-wall-side {
+  fill: var(--scene-wall-side);
+}
+
+.scene-roof {
+  fill: var(--scene-roof);
+}
+
+.scene-roof-trim {
+  fill: none;
+  stroke: var(--scene-roof-edge);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.scene-door {
+  fill: var(--scene-door);
+}
+
+.scene-window {
+  fill: var(--scene-window);
+}
+
+
+/* 中間の幅ではイラストを右半分に収め、見出しに重ならないようにする */
+@media (min-width: 901px) and (max-width: 1100px) {
+  .hero__art {
+    width: 50%;
+  }
+}
+
+/* 狭い幅ではイラストを文章の下に置き、縦横比を保って切れないようにする */
+@media (max-width: 900px) {
   .hero {
-    padding: 48px 0 32px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .hero__art {
+    position: static;
+    order: 2;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 960 / 300;
+    margin-top: -24px;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .hero__eyebrow {
+    font-size: 0.9rem;
+    letter-spacing: 0.04em;
+  }
+
+  .hero__inner {
+    padding-top: 44px;
+    padding-bottom: 0;
   }
 }
 
 /* Sections */
 .section {
-  padding: 48px 0 72px;
+  padding: 56px 0 72px;
 }
 
 .section h2 {
-  font-size: 1.5rem;
-  letter-spacing: 0.02em;
+  font-size: 1.9rem;
+  letter-spacing: 0.01em;
+  line-height: 1.3;
 }
 
 .section__head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 24px;
+  display: grid;
+  gap: 4px;
+  margin-bottom: 28px;
 }
 
 .section__count {
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
 }
 
 /* App grid */
+/*
+ * 列数は画面幅ごとに決め打ち（1 → 2 → 3 → 5）。5アプリなので4列だと2段目が1枚だけになるため使わない。
+ * アプリ数が変わったら列数を見直す
+ */
 .app-grid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 20px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+}
+
+@media (min-width: 480px) {
+  .app-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 760px) {
+  .app-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .app-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
 }
 
 .app-grid > li {
@@ -257,48 +464,41 @@ a {
   min-width: 0;
 }
 
-@media (min-width: 640px) {
-  .app-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 960px) {
-  .app-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
 /* App card */
 .app-card {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
   width: 100%;
-  padding: 22px;
+  padding: 20px;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
-.app-card__head {
-  display: flex;
-  align-items: center;
-  gap: 14px;
+.app-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgb(31 29 26 / 0.05), 0 12px 28px rgb(31 29 26 / 0.08);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-card,
+  .app-card:hover {
+    transition: none;
+    transform: none;
+  }
 }
 
 .app-card__icon {
-  flex-shrink: 0;
   width: 64px;
   height: 64px;
+  margin-bottom: 4px;
   border-radius: 22.5%;
   border: 1px solid var(--line);
-}
-
-.app-card__title {
-  flex: 1;
-  min-width: 0;
 }
 
 .app-card__title h3 {
@@ -308,14 +508,59 @@ a {
 
 .app-card__id {
   color: var(--muted);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.8rem;
 }
 
-.status {
-  align-self: flex-start;
-  flex-shrink: 0;
+.app-card__tagline {
+  font-weight: 600;
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.app-card__desc {
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.7;
+}
+
+.app-card__platforms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
   padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.app-card__foot {
+  display: grid;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.app-card__status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.app-card__version {
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.status {
+  padding: 1px 10px;
   border-radius: 999px;
   font-size: 0.75rem;
   font-weight: 600;
@@ -337,121 +582,36 @@ a {
   color: var(--dev-ink);
 }
 
-.app-card__tagline {
-  font-weight: 600;
-  line-height: 1.5;
-}
-
-.app-card__desc {
-  color: var(--muted);
-  font-size: 0.95rem;
-}
-
-.app-card__meta {
+.app-card__links {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 20px;
-  margin-top: auto;
-  padding-top: 12px;
-  border-top: 1px solid var(--line);
-  font-size: 0.85rem;
+  align-content: flex-start;
+  gap: 2px 12px;
+  font-size: 0.78rem;
 }
 
-.app-card__meta > div {
-  display: flex;
-  gap: 6px;
+/* 複数列で並ぶときは、リンクの数でカード下部の高さがずれないよう2行分を確保する */
+@media (min-width: 480px) {
+  .app-card__links {
+    min-height: 4.4em;
+  }
 }
 
-.app-card__meta dt {
-  color: var(--muted);
-}
-
-.app-card__meta dd {
-  font-weight: 600;
-}
-
-.app-card__actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px 16px;
-}
-
-.store-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.button {
-  display: inline-flex;
-  align-items: center;
-  min-height: 40px;
-  padding: 0 16px;
-  background: var(--ink);
-  color: var(--bg);
-  border-radius: 999px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.button:hover {
-  opacity: 0.85;
-}
-
-.info-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 14px;
-  font-size: 0.85rem;
-}
-
-.info-links a {
+.app-card__links a {
   display: inline-block;
-  padding: 4px 0;
+  padding: 2px 0;
   color: var(--muted);
   text-underline-offset: 3px;
 }
 
-.info-links a:hover {
-  color: var(--ink);
+.app-card__links a:hover {
+  color: var(--accent);
 }
 
-/* About */
-.section--about {
-  border-top: 1px solid var(--line);
-}
-
-.about {
-  display: grid;
-  gap: 16px;
-}
-
-@media (min-width: 760px) {
-  .about {
-    grid-template-columns: 200px 1fr;
-    gap: 32px;
-  }
-}
-
-.about__body {
-  display: grid;
-  gap: 10px;
-  max-width: 620px;
-  color: var(--muted);
-}
-
-.about__name {
-  color: var(--ink);
-  font-weight: 700;
-  font-size: 1.1rem;
-}
-
-/* Footer */
+/* Footer（About を含む） */
 .site-footer {
-  padding: 28px 0 40px;
+  padding: 40px 0 44px;
+  background: var(--hero-bg);
   border-top: 1px solid var(--line);
   color: var(--muted);
   font-size: 0.9rem;
@@ -460,23 +620,63 @@ a {
 .site-footer__inner {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
   justify-content: space-between;
-  gap: 12px 24px;
+  gap: 28px 48px;
+}
+
+.about {
+  display: grid;
+  gap: 4px;
+  max-width: 560px;
+}
+
+.about h2 {
+  color: var(--ink);
+  font-size: 1.1rem;
+}
+
+.about__name {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.about__body {
+  display: grid;
+  gap: 4px;
+  margin-top: 6px;
+  font-size: 0.85rem;
+}
+
+.site-footer__side {
+  display: grid;
+  align-content: space-between;
+  gap: 20px;
+  min-width: 180px;
 }
 
 .footer-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 20px;
+  display: grid;
+  gap: 6px;
 }
 
 .footer-links a {
-  text-underline-offset: 3px;
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  text-decoration: none;
+}
+
+.footer-links a:not(:has(.external-mark))::after {
+  content: '→';
 }
 
 .footer-links a:hover {
   color: var(--ink);
+}
+
+.site-footer__copy {
+  font-size: 0.8rem;
+  text-align: right;
 }
 
 /* Privacy page */

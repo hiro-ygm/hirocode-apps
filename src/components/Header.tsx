@@ -1,5 +1,8 @@
 import { site } from '../data/site'
 
+// "hirocode Apps" → 先頭の語を太字、残りを細字で表示する
+const [logoMain, ...logoSub] = site.name.split(' ')
+
 type Props = {
   /** トップページへの相対パス（"./" または "../"） */
   root: string
@@ -10,7 +13,7 @@ export function Header({ root }: Props) {
     <header className="site-header">
       <div className="container site-header__inner">
         <a href={root} className="site-logo">
-          {site.name}
+          <span className="site-logo__main">{logoMain}</span> <span className="site-logo__sub">{logoSub.join(' ')}</span>
         </a>
         <nav aria-label="メインナビゲーション">
           <ul className="site-nav">
