@@ -1,5 +1,6 @@
 import react from '@vitejs/plugin-react'
 import { defineConfig, loadEnv } from 'vite'
+import { devReleaseStatus } from './scripts/dev-release-status.mjs'
 
 // base: './' で相対パス出力にし、GitHub Pagesのプロジェクトサイト（/<repo>/）でも
 // カスタムドメイン（/）でも同じビルドで動くようにしている。
@@ -11,7 +12,7 @@ export default defineConfig(({ command, mode }) => {
 
   return {
     base: './',
-    plugins: [react()],
+    plugins: [react(), devReleaseStatus()],
     build: {
       rollupOptions: {
         input: {

@@ -20,6 +20,14 @@ export function Header({ root }: Props) {
             <li>
               <a href={`${root}#about`}>About</a>
             </li>
+            {/* 開発サーバーでだけ表示（本番ビルドでは除去される）。レポートは scripts/dev-release-status.mjs が生成 */}
+            {import.meta.env.DEV && (
+              <li>
+                <a href={`${root}release-status/`} className="site-nav__dev">
+                  Release Status
+                </a>
+              </li>
+            )}
           </ul>
         </nav>
       </div>
