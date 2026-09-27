@@ -29,6 +29,8 @@ npm run status     # release-status/index.html を生成してブラウザで開
 
 `apps.ts` の各アプリについて、サイト掲載の版・App Storeの公開版（iTunes Lookup API）・
 最新タグ・`release/*` ブランチ・`develop` の `app.json` version を一覧し、食い違いを警告する。
+審査状況は App Store Connect API（GETのみ）から取得する。APIキーは各アプリの `eas.json`（`submit.production.ios` の
+`ascApiKeyId` / `ascApiKeyIssuerId` / `ascApiKeyPath`）の設定をそのまま使うため、このリポジトリに秘密情報は置かない。
 各アプリのリポジトリが `../<app id>` にある前提。生成物はgitignore済みでデプロイされない。
 gitはローカルのrefを見るだけなので、最新にしたい場合は各リポジトリで `git fetch` しておく。
 

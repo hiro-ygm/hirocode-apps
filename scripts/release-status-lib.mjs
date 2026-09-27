@@ -7,6 +7,46 @@ const statusLabels = {
   development: '開発中',
 }
 
+// App Store Connect の appVersionState（旧 appStoreState）の表示名
+const ascStateLabels = {
+  PREPARE_FOR_SUBMISSION: '提出準備中',
+  WAITING_FOR_EXPORT_COMPLIANCE: '輸出コンプライアンス待ち',
+  WAITING_FOR_REVIEW: '審査待ち',
+  IN_REVIEW: '審査中',
+  PENDING_DEVELOPER_RELEASE: '承認済み・手動リリース待ち',
+  PENDING_APPLE_RELEASE: '承認済み・リリース待ち',
+  PROCESSING_FOR_DISTRIBUTION: '配信準備中',
+  ACCEPTED: '承認済み',
+  REJECTED: 'リジェクト',
+  METADATA_REJECTED: 'メタデータのリジェクト',
+  INVALID_BINARY: 'バイナリ不備',
+  DEVELOPER_REJECTED: '取り下げ',
+}
+
+const reviewStates = new Set(['WAITING_FOR_REVIEW', 'IN_REVIEW'])
+const rejectedStates = new Set(['REJECTED', 'METADATA_REJECTED', 'INVALID_BINARY'])
+// 公開済み・置き換え済みなど「進行中ではない」状態
+const settledStates = new Set([
+  'READY_FOR_DISTRIBUTION',
+  'READY_FOR_SALE',
+  'REPLACED_WITH_NEW_VERSION',
+  'REMOVED_FROM_SALE',
+  'DEVELOPER_REMOVED_FROM_SALE',
+])
+
+export function ascStateLabel(state) {
+  return ascStateLabels[state] ?? state
+}
+
+/** 進行中（公開前）の最新バージョンを選ぶ。なければ null */
+export function pickPendingVersion(versions) {
+  return (
+    [...versions]
+      .filter((v) => !settledStates.has(v.state))
+      .sort((a, b) => String(b.createdDate).localeCompare(String(a.createdDate)))[0] ?? null
+  )
+}
+
 /** "v1.2.0" / "release/1.2.0" などから "1.2.0" を取り出す */
 export function toVersion(ref) {
   if (!ref) return null
@@ -23,10 +63,11 @@ export function buildWarnings(row) {
   const warn = (message) => warnings.push({ level: 'warn', message })
   const info = (message) => warnings.push({ level: 'info', message })
 
-  const { site, store, repo } = row
+  const { site, store, repo, asc } = row
   const tagVersion = toVersion(repo?.tag)
 
   if (store?.error) warn(`App Storeの取得に失敗: ${store.error}`)
+  if (asc?.error) warn(`App Store Connectの取得に失敗: ${asc.error}`)
   if (!repo) {
     warn(`リポジトリが見つからない（${row.repoPath}）`)
   } else if (repo.error) {
@@ -52,6 +93,25 @@ export function buildWarnings(row) {
     } else if (compareVersions(tagVersion, storeVersion) > 0) {
       info(`タグ ${repo.tag} はまだストアに反映されていない（審査中？）`)
     }
+  }
+
+  if (asc && !asc.error) {
+    const pending = asc.pending
+    const inReview = pending && reviewStates.has(pending.state)
+    if (site.status === 'review' && !inReview) {
+      warn('サイトは「審査中」だがApp Store Connectに審査中の版がない')
+    }
+    if (inReview && site.status === 'development') {
+      warn(`${pending.version} が${ascStateLabel(pending.state)}だがサイトは「開発中」のまま`)
+    }
+    if (pending && rejectedStates.has(pending.state)) {
+      warn(`${pending.version} が${ascStateLabel(pending.state)}になっている`)
+    }
+    if (pending?.state === 'PENDING_DEVELOPER_RELEASE') {
+      info(`${pending.version} は承認済み。App Store Connectで手動リリースが必要`)
+    }
+  } else if (asc === null && repo && !repo.error) {
+    info('App Store Connectの設定なし（eas.json の submit.production.ios）')
   }
 
   if (repo && !repo.error) {
@@ -97,7 +157,7 @@ function cell(main, sub) {
 }
 
 function renderRow(row) {
-  const { site, store, repo } = row
+  const { site, store, repo, asc } = row
   const warnings = buildWarnings(row)
 
   const storeCell =
@@ -105,9 +165,12 @@ function renderRow(row) {
       ? `<div class="main"><a href="${escapeHtml(store.url)}">${escapeHtml(store.version)}</a></div>` +
         (store.releaseDate ? `<div class="sub">${escapeHtml(store.releaseDate)}</div>` : '')
       : dash
-  const reviewCell = repo?.releaseBranches?.length
-    ? repo.releaseBranches.map((b) => `<div class="main">${escapeHtml(b)}</div>`).join('')
-    : dash
+  const releaseNote = repo?.releaseBranches?.length ? repo.releaseBranches.join(', ') : 'release ブランチなし'
+  const ascCell = asc?.pending
+    ? cell(`${asc.pending.version} ${ascStateLabel(asc.pending.state)}`, releaseNote)
+    : repo?.releaseBranches?.length
+      ? `${dash}<div class="sub">${escapeHtml(releaseNote)}</div>`
+      : dash
   const developCell = repo?.developVersion
     ? cell(
         repo.developVersion,
@@ -127,7 +190,7 @@ function renderRow(row) {
   <td>${cell(site.version ?? '—', statusLabels[site.status])}</td>
   <td>${storeCell}</td>
   <td>${cell(repo?.tag, repo?.tagDate)}</td>
-  <td>${reviewCell}</td>
+  <td>${ascCell}</td>
   <td>${developCell}</td>
   <td>${notes}</td>
 </tr>`
@@ -194,7 +257,7 @@ export function renderHtml(rows, generatedAt) {
           <th scope="col">サイト掲載</th>
           <th scope="col">App Store</th>
           <th scope="col">最新タグ</th>
-          <th scope="col">審査中ブランチ</th>
+          <th scope="col">App Store Connect</th>
           <th scope="col">develop</th>
           <th scope="col">注意</th>
         </tr>
@@ -204,7 +267,7 @@ ${rows.map(renderRow).join('\n')}
       </tbody>
     </table>
   </div>
-  <footer>git はローカルの ref を参照しています（fetch はしていません）。App Store は iTunes Lookup API（jp）から取得。</footer>
+  <footer>git はローカルの ref を参照しています（fetch はしていません）。App Store は iTunes Lookup API（jp）、審査状況は App Store Connect API（読み取りのみ）から取得。</footer>
 </main>
 </body>
 </html>
