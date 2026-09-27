@@ -23,13 +23,10 @@ export type AppInfo = {
   status: AppStatus
   /** ストアで公開（または提出）しているバージョン。手動管理 */
   version?: string
-  /** YYYY-MM-DD */
-  releaseDate?: string
   appStoreUrl?: string
   googlePlayUrl?: string
   privacyPolicyUrl?: string
   supportUrl?: string
-  screenshots?: string[]
 }
 
 /**

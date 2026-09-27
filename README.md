@@ -52,4 +52,5 @@ gitはローカルのrefを見るだけなので、最新にしたい場合は�
 
 OGPの `og:image` / `og:url` は絶対URLが必要なため、HTML内の `%VITE_SITE_URL%` をビルド時に置換している。
 GitHub Actionsでは `configure-pages` の `base_url` が自動で入る。ローカルで確認する場合は
-`VITE_SITE_URL=https://... npm run build` のように指定する。
+`VITE_SITE_URL=https://... npm run build` のように指定する（または `.env.example` を `.env` にコピーして設定する）。
+未設定のままビルドすると `og:image` が相対パスになるため、ビルド時に警告を出す。

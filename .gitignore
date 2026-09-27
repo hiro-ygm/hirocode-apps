@@ -3,3 +3,6 @@ dist
 release-status
 .DS_Store
 *.log
+.env
+.env.*
+!.env.example
