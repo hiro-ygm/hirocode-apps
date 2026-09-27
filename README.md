@@ -21,6 +21,17 @@ npm run preview    # ビルド結果の確認
 `status` は `published`（公開中）/ `review`（審査中）/ `development`（開発中）。
 `appStoreUrl` / `googlePlayUrl` / `privacyPolicyUrl` / `supportUrl` は未設定ならカードに表示されない。
 
+## リリース状況レポート（開発者用）
+
+```bash
+npm run status     # release-status/index.html を生成してブラウザで開く
+```
+
+`apps.ts` の各アプリについて、サイト掲載の版・App Storeの公開版（iTunes Lookup API）・
+最新タグ・`release/*` ブランチ・`develop` の `app.json` version を一覧し、食い違いを警告する。
+各アプリのリポジトリが `../<app id>` にある前提。生成物はgitignore済みでデプロイされない。
+gitはローカルのrefを見るだけなので、最新にしたい場合は各リポジトリで `git fetch` しておく。
+
 ## 構成
 
 - `src/data/apps.ts` — アプリデータ（型定義含む）
@@ -41,4 +52,5 @@ npm run preview    # ビルド結果の確認
 
 OGPの `og:image` / `og:url` は絶対URLが必要なため、HTML内の `%VITE_SITE_URL%` をビルド時に置換している。
 GitHub Actionsでは `configure-pages` の `base_url` が自動で入る。ローカルで確認する場合は
-`VITE_SITE_URL=https://... npm run build` のように指定する。
+`VITE_SITE_URL=https://... npm run build` のように指定する（または `.env.example` を `.env` にコピーして設定する）。
+未設定のままビルドすると `og:image` が相対パスになるため、ビルド時に警告を出す。
