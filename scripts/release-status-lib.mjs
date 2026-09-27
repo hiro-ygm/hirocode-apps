@@ -47,6 +47,17 @@ export function pickPendingVersion(versions) {
   )
 }
 
+/**
+ * 表示用に "x.y.z" の3桁へ揃える（App Store / App Store Connect は "1.0" のように返し、git 側は "1.0.0" のため）。
+ * 数字以外を含む版はそのまま返す
+ */
+export function normalizeVersion(version) {
+  if (typeof version !== 'string' || !/^\d+(\.\d+){0,2}$/.test(version)) return version
+  const parts = version.split('.')
+  while (parts.length < 3) parts.push('0')
+  return parts.join('.')
+}
+
 /** "v1.2.0" / "release/1.2.0" などから "1.2.0" を取り出す */
 export function toVersion(ref) {
   if (!ref) return null
