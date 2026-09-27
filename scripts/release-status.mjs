@@ -153,6 +153,8 @@ const rows = await Promise.all(
       id: app.id,
       repoPath,
       site: { name: app.name, status: app.status, version: app.version ?? null },
+      // レポート（release-status/index.html）から見た相対パス。file:// でも開発サーバーでも表示できる
+      icon: existsSync(path.join(root, 'src/assets/icons', `${app.id}.png`)) ? `../src/assets/icons/${app.id}.png` : null,
       store: await readStore(app.appStoreUrl),
       asc: existsSync(repoPath) ? await readAsc(repoPath) : null,
       repo: readRepo(repoPath),

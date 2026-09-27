@@ -117,7 +117,8 @@ test('renderHtml は値をエスケープし、要確認件数を出す', () => 
   const html = renderHtml([row], 'now')
   assert.ok(html.includes('&lt;b&gt;x&lt;/b&gt;'))
   assert.ok(!html.includes('<b>x</b>'))
-  assert.ok(html.includes('要確認 1 件'))
+  assert.ok(html.includes('<span class="tile__value">1</span><span class="tile__label">要確認</span>'))
+  assert.ok(html.includes('class="badge badge--warn">要確認'))
 })
 
 test('pickPendingVersion は公開済みを除いた最新の版を選ぶ', () => {
@@ -158,11 +159,24 @@ test('ASCの取得エラーは warn、設定なしは info', () => {
   ])
 })
 
+test('開発の版は公開中・審査中より新しいときだけ出す', () => {
+  const stale = renderHtml(
+    [makeRow({ repo: { ...baseRepo, developVersion: '1.0.0', commitsSinceTag: 5 } })],
+    'now',
+  )
+  assert.ok(stale.includes('<span class="lane__label">開発</span>\n        <span class="lane__value lane__value--none">—</span>'))
+  assert.ok(stale.includes('v1.1.0 以降 +5 commits'))
+  const newer = renderHtml([makeRow({ repo: { ...baseRepo, developVersion: '1.2.0', commitsSinceTag: 5 } })], 'now')
+  assert.ok(newer.includes('<span class="lane__label">開発</span>\n        <span class="lane__value">1.2.0</span>'))
+})
+
 test('renderHtml はASCの状態とreleaseブランチの有無を出す', () => {
   const html = renderHtml(
     [makeRow({ asc: { pending: { version: '1.1', state: 'WAITING_FOR_REVIEW' } } })],
     'now',
   )
-  assert.ok(html.includes('1.1 審査待ち'))
+  assert.ok(html.includes('<span class="lane__value">1.1</span>'))
+  assert.ok(html.includes('<span class="chip chip--review">審査待ち</span>'))
+  assert.ok(html.includes('class="badge badge--review">審査待ち'))
   assert.ok(html.includes('release ブランチなし'))
 })
