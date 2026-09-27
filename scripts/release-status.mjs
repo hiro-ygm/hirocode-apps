@@ -3,11 +3,12 @@
 // 前提: 各アプリのリポジトリが このリポジトリと同じ階層に ../<app id> として置かれている。
 
 import { execFileSync } from 'node:child_process'
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import { sign } from 'node:crypto'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { runnerImport } from 'vite'
-import { renderHtml } from './release-status-lib.mjs'
+import { pickPendingVersion, renderHtml } from './release-status-lib.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const outDir = path.join(root, 'release-status')
@@ -78,6 +79,71 @@ async function readStore(appStoreUrl) {
   }
 }
 
+// App Store Connect API（読み取りのみ）。キーは各アプリの eas.json（submit.production.ios）の設定を使う
+const ascTokens = new Map()
+
+function ascToken({ ascApiKeyId, ascApiKeyIssuerId, ascApiKeyPath }) {
+  if (!ascTokens.has(ascApiKeyId)) {
+    const b64 = (value) => Buffer.from(JSON.stringify(value)).toString('base64url')
+    const now = Math.floor(Date.now() / 1000)
+    const data = `${b64({ alg: 'ES256', kid: ascApiKeyId, typ: 'JWT' })}.${b64({
+      iss: ascApiKeyIssuerId,
+      iat: now,
+      exp: now + 10 * 60,
+      aud: 'appstoreconnect-v1',
+    })}`
+    const signature = sign('sha256', Buffer.from(data), {
+      key: readFileSync(ascApiKeyPath, 'utf8'),
+      dsaEncoding: 'ieee-p1363',
+    }).toString('base64url')
+    ascTokens.set(ascApiKeyId, `${data}.${signature}`)
+  }
+  return ascTokens.get(ascApiKeyId)
+}
+
+async function ascGet(token, pathAndQuery) {
+  const res = await fetch(`https://api.appstoreconnect.apple.com${pathAndQuery}`, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${token}` },
+    signal: AbortSignal.timeout(10_000),
+  })
+  const body = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(body.errors?.[0]?.detail ?? `HTTP ${res.status}`)
+  return body
+}
+
+/** null = eas.json に ASC の設定がない */
+async function readAsc(repoPath) {
+  let key
+  let bundleId
+  try {
+    key = JSON.parse(readFileSync(path.join(repoPath, 'eas.json'), 'utf8')).submit?.production?.ios
+    bundleId = JSON.parse(readFileSync(path.join(repoPath, 'app.json'), 'utf8')).expo?.ios?.bundleIdentifier
+  } catch {
+    return null
+  }
+  if (!key?.ascApiKeyId || !key.ascApiKeyIssuerId || !key.ascApiKeyPath || !bundleId) return null
+
+  try {
+    const token = ascToken(key)
+    const apps = await ascGet(token, `/v1/apps?filter[bundleId]=${encodeURIComponent(bundleId)}&fields[apps]=bundleId`)
+    const app = apps.data?.find((a) => a.attributes.bundleId === bundleId)
+    if (!app) return { error: `${bundleId} が見つからない` }
+    const versions = await ascGet(
+      token,
+      `/v1/apps/${app.id}/appStoreVersions?filter[platform]=IOS&limit=10&fields[appStoreVersions]=versionString,appVersionState,appStoreState,createdDate`,
+    )
+    const list = (versions.data ?? []).map((v) => ({
+      version: v.attributes.versionString,
+      state: v.attributes.appVersionState ?? v.attributes.appStoreState,
+      createdDate: v.attributes.createdDate,
+    }))
+    return { pending: pickPendingVersion(list) }
+  } catch (error) {
+    return { error: error.message }
+  }
+}
+
 const { module } = await runnerImport('/src/data/apps.ts', { root, configFile: false, logLevel: 'error' })
 
 const rows = await Promise.all(
@@ -88,6 +154,7 @@ const rows = await Promise.all(
       repoPath,
       site: { name: app.name, status: app.status, version: app.version ?? null },
       store: await readStore(app.appStoreUrl),
+      asc: existsSync(repoPath) ? await readAsc(repoPath) : null,
       repo: readRepo(repoPath),
     }
   }),
