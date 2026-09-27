@@ -148,59 +148,131 @@ function escapeHtml(value) {
     .replaceAll('"', '&quot;')
 }
 
-const dash = '<span class="muted">—</span>'
-
-function cell(main, sub) {
-  if (!main) return dash
-  const subHtml = sub ? `<div class="sub">${escapeHtml(sub)}</div>` : ''
-  return `<div class="main">${escapeHtml(main)}</div>${subHtml}`
+/** カード右上のバッジ。tone は色の種類 */
+function overallBadge(row, warnings) {
+  if (warnings.some((w) => w.level === 'warn')) return { tone: 'warn', label: '要確認' }
+  const pending = row.asc?.pending
+  if (pending && rejectedStates.has(pending.state)) return { tone: 'warn', label: ascStateLabel(pending.state) }
+  if (pending && reviewStates.has(pending.state)) return { tone: 'review', label: ascStateLabel(pending.state) }
+  if (row.store && !row.store.error) return { tone: 'live', label: '公開中' }
+  return { tone: 'idle', label: statusLabels[row.site.status] }
 }
 
-function renderRow(row) {
-  const { site, store, repo, asc } = row
-  const warnings = buildWarnings(row)
+function laneTone(state) {
+  if (rejectedStates.has(state)) return 'warn'
+  if (reviewStates.has(state)) return 'review'
+  if (state === 'PENDING_DEVELOPER_RELEASE' || state === 'PENDING_APPLE_RELEASE' || state === 'ACCEPTED') return 'live'
+  return 'active'
+}
 
-  const storeCell =
-    store && !store.error
-      ? `<div class="main"><a href="${escapeHtml(store.url)}">${escapeHtml(store.version)}</a></div>` +
-        (store.releaseDate ? `<div class="sub">${escapeHtml(store.releaseDate)}</div>` : '')
-      : dash
-  const releaseNote = repo?.releaseBranches?.length ? repo.releaseBranches.join(', ') : 'release ブランチなし'
-  const ascCell = asc?.pending
-    ? cell(`${asc.pending.version} ${ascStateLabel(asc.pending.state)}`, releaseNote)
-    : repo?.releaseBranches?.length
-      ? `${dash}<div class="sub">${escapeHtml(releaseNote)}</div>`
-      : dash
-  const developCell = repo?.developVersion
-    ? cell(
-        repo.developVersion,
-        [repo.commitsSinceTag > 0 ? `+${repo.commitsSinceTag} commits` : null, repo.lastCommitDate]
-          .filter(Boolean)
-          .join(' · '),
-      )
-    : dash
+/**
+ * 公開・審査・開発を独立した行として返す（1つの版が流れるわけではないので矢印でつながない）。
+ * 開発の版は、公開中・審査中より新しいときだけ表示する（develop の app.json が据え置きのことがあるため）
+ */
+function buildLanes(row) {
+  const { repo, asc, store } = row
+  const pending = asc && !asc.error ? asc.pending : null
+  const liveVersion = store && !store.error ? store.version : null
+  const release = repo?.releaseBranches?.length ? repo.releaseBranches.join(', ') : null
+
+  const live = liveVersion
+    ? {
+        tone: 'live',
+        value: liveVersion,
+        detail: [store.releaseDate, repo?.tag].filter(Boolean).join(' · '),
+        href: store.url,
+      }
+    : { tone: 'empty', value: '—', detail: '未公開' }
+
+  const review = pending
+    ? {
+        tone: laneTone(pending.state),
+        value: pending.version,
+        chip: ascStateLabel(pending.state),
+        detail: release ?? 'release ブランチなし',
+      }
+    : { tone: 'empty', value: '—', detail: release ? `進行中の版なし（${release}）` : '進行中の版なし' }
+
+  let dev = { tone: 'empty', value: '—', detail: repo ? 'app.json なし' : 'リポジトリなし' }
+  if (repo?.developVersion) {
+    const shipped = [liveVersion, pending?.version].filter(Boolean)
+    const isNewer = shipped.every((v) => compareVersions(repo.developVersion, v) > 0)
+    const since = repo.tag ? `${repo.tag} 以降 ` : ''
+    dev = {
+      tone: isNewer || repo.commitsSinceTag > 0 ? 'active' : 'empty',
+      value: isNewer ? repo.developVersion : '—',
+      detail: repo.commitsSinceTag > 0 ? `${since}+${repo.commitsSinceTag} commits` : '未リリースの変更なし',
+    }
+  }
+
+  return [
+    { label: '公開', ...live },
+    { label: '審査', ...review },
+    { label: '開発', ...dev },
+  ]
+}
+
+function renderLane(lane) {
+  const value = lane.href
+    ? `<a href="${escapeHtml(lane.href)}">${escapeHtml(lane.value)}</a>`
+    : escapeHtml(lane.value)
+  const chip = lane.chip ? `<span class="chip chip--${lane.tone}">${escapeHtml(lane.chip)}</span>` : ''
+  return `<li class="lane lane--${lane.tone}">
+        <span class="lane__label">${escapeHtml(lane.label)}</span>
+        <span class="lane__value${lane.value === '—' ? ' lane__value--none' : ''}">${value}</span>
+        <span class="lane__detail">${chip}<span>${escapeHtml(lane.detail)}</span></span>
+      </li>`
+}
+
+function renderCard(row) {
+  const { site, store } = row
+  const warnings = buildWarnings(row)
+  const badge = overallBadge(row, warnings)
+  const storeVersion = store && !store.error ? store.version : null
+  const siteMatches = !storeVersion || !site.version || compareVersions(site.version, storeVersion) === 0
+  const icon = row.icon
+    ? `<img class="card__icon" src="${escapeHtml(row.icon)}" alt="" width="48" height="48">`
+    : `<span class="card__icon card__icon--blank" aria-hidden="true"></span>`
   const notes = warnings.length
     ? `<ul class="notes">${warnings
-        .map((w) => `<li class="note note--${w.level}">${escapeHtml(w.message)}</li>`)
+        .map(
+          (w) =>
+            `<li class="note note--${w.level}"><span class="note__mark" aria-hidden="true">${
+              w.level === 'warn' ? '!' : 'i'
+            }</span>${escapeHtml(w.message)}</li>`,
+        )
         .join('')}</ul>`
-    : '<span class="ok">OK</span>'
+    : ''
 
-  return `<tr class="${warnings.some((w) => w.level === 'warn') ? 'has-warn' : ''}">
-  <th scope="row"><div class="main">${escapeHtml(site.name)}</div><div class="sub">${escapeHtml(row.id)}</div></th>
-  <td>${cell(site.version ?? '—', statusLabels[site.status])}</td>
-  <td>${storeCell}</td>
-  <td>${cell(repo?.tag, repo?.tagDate)}</td>
-  <td>${ascCell}</td>
-  <td>${developCell}</td>
-  <td>${notes}</td>
-</tr>`
+  return `<article class="card card--${badge.tone}">
+    <header class="card__head">
+      ${icon}
+      <div class="card__title">
+        <h2>${escapeHtml(site.name)}</h2>
+        <p class="card__site ${siteMatches ? '' : 'card__site--ng'}">サイト掲載：${escapeHtml(
+          statusLabels[site.status],
+        )} · ${escapeHtml(site.version ?? '—')}</p>
+      </div>
+      <span class="badge badge--${badge.tone}">${escapeHtml(badge.label)}</span>
+    </header>
+    <ul class="lanes">
+      ${buildLanes(row).map(renderLane).join('\n      ')}
+    </ul>
+    ${notes}
+  </article>`
+}
+
+function summarize(rows) {
+  const warn = rows.flatMap(buildWarnings).filter((w) => w.level === 'warn').length
+  const live = rows.filter((r) => r.store && !r.store.error).length
+  const review = rows.filter((r) => r.asc?.pending && reviewStates.has(r.asc.pending.state)).length
+  return { warn, live, review }
 }
 
 export function renderHtml(rows, generatedAt) {
-  const warnCount = rows.flatMap(buildWarnings).filter((w) => w.level === 'warn').length
-  const summary = warnCount
-    ? `<p class="summary summary--warn">要確認 ${warnCount} 件</p>`
-    : '<p class="summary">食い違いはありません</p>'
+  const { warn, live, review } = summarize(rows)
+  const tile = (tone, label, value) =>
+    `<div class="tile tile--${tone}"><span class="tile__value">${value}</span><span class="tile__label">${label}</span></div>`
 
   return `<!doctype html>
 <html lang="ja">
@@ -210,62 +282,107 @@ export function renderHtml(rows, generatedAt) {
 <title>Release Status</title>
 <style>
   :root {
-    --bg: #faf7f2; --surface: #ffffff; --text: #2b2724; --muted: #8a827a;
-    --border: #e7e0d6; --warn: #b54708; --warn-bg: #fff4e5; --info: #475467; --ok: #067647;
+    --bg: #faf7f2; --surface: #ffffff; --ink: #1f1d1a; --muted: #6f685f; --line: #ebe4da;
+    --empty: #c9c1b6;
+    --live: #0f7b4a; --live-soft: #e3f4ea;
+    --review: #2759c4; --review-soft: #e6edfb;
+    --active: #b4532a; --active-soft: #f6e6dc;
+    --warn: #c2410c; --warn-soft: #fff1e6;
+    --idle: #6f685f; --idle-soft: #efeae3;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #1c1a18; --surface: #262320; --text: #eee8e1; --muted: #9c948b;
-      --border: #3a3531; --warn: #fdb022; --warn-bg: #3a2a12; --info: #b0b8c4; --ok: #47cd89;
+      --bg: #1a1816; --surface: #24211e; --ink: #f2ede6; --muted: #a9a196; --line: #36322d;
+      --empty: #4d4740;
+      --live: #4cc98a; --live-soft: #173326;
+      --review: #7fa5f5; --review-soft: #1c2740;
+      --active: #ec9468; --active-soft: #3a261b;
+      --warn: #fb9a5b; --warn-soft: #3d2415;
+      --idle: #a9a196; --idle-soft: #2e2a26;
     }
   }
   * { box-sizing: border-box; }
-  body { margin: 0; padding: 32px 16px; background: var(--bg); color: var(--text);
+  body { margin: 0; padding: 40px 16px 56px; background: var(--bg); color: var(--ink);
     font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif; }
-  main { max-width: 1200px; margin: 0 auto; }
-  h1 { font-size: 22px; margin: 0 0 4px; }
-  .meta { color: var(--muted); margin: 0 0 16px; }
-  .summary { font-weight: 600; margin: 0 0 16px; color: var(--ok); }
-  .summary--warn { color: var(--warn); }
-  .table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
-  table { border-collapse: collapse; width: 100%; min-width: 900px; }
-  th, td { text-align: left; vertical-align: top; padding: 12px 14px; border-bottom: 1px solid var(--border); }
-  thead th { font-size: 12px; color: var(--muted); font-weight: 600; white-space: nowrap; }
-  tbody tr:last-child > * { border-bottom: none; }
-  tr.has-warn > th { box-shadow: inset 3px 0 0 var(--warn); }
-  .main { font-weight: 600; font-variant-numeric: tabular-nums; }
-  .sub, .muted { color: var(--muted); font-size: 12px; }
-  a { color: inherit; }
-  .notes { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
-  .note { padding: 2px 8px; border-radius: 6px; font-size: 12px; }
-  .note--warn { color: var(--warn); background: var(--warn-bg); }
-  .note--info { color: var(--info); }
-  .ok { color: var(--ok); font-weight: 600; }
-  footer { color: var(--muted); font-size: 12px; margin-top: 16px; }
+  main { max-width: 1080px; margin: 0 auto; }
+  .top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
+  h1 { font-size: 26px; margin: 0; letter-spacing: -0.01em; }
+  .meta { color: var(--muted); margin: 4px 0 0; font-size: 13px; }
+  .tiles { display: flex; gap: 10px; }
+  .tile { min-width: 92px; padding: 10px 14px; border-radius: 12px; background: var(--surface);
+    border: 1px solid var(--line); display: grid; }
+  .tile__value { font-size: 24px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .tile__label { color: var(--muted); font-size: 12px; }
+  .tile--live .tile__value { color: var(--live); }
+  .tile--review .tile__value { color: var(--review); }
+  .tile--warn .tile__value { color: var(--warn); }
+  .tile--ok .tile__value { color: var(--muted); }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 480px), 1fr)); gap: 16px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px; align-content: start; min-width: 0;
+    display: grid; gap: 16px; }
+  .card--warn { border-color: var(--warn); box-shadow: 0 0 0 1px var(--warn); }
+  .card__head { display: flex; align-items: center; gap: 12px; }
+  .card__icon { width: 48px; height: 48px; border-radius: 11px; flex: none; border: 1px solid var(--line); }
+  .card__icon--blank { display: block; background: var(--idle-soft); }
+  .card__title { flex: 1; min-width: 0; }
+  h2 { font-size: 17px; margin: 0; }
+  .card__site { margin: 2px 0 0; color: var(--muted); font-size: 12px; }
+  .card__site--ng { color: var(--warn); font-weight: 600; }
+  .badge { flex: none; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+  .badge--live { color: var(--live); background: var(--live-soft); }
+  .badge--review { color: var(--review); background: var(--review-soft); }
+  .badge--warn { color: var(--warn); background: var(--warn-soft); }
+  .badge--idle { color: var(--idle); background: var(--idle-soft); }
+
+  .lanes { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .lane { display: grid; grid-template-columns: 2.5em 4.5em minmax(0, 1fr); align-items: center; column-gap: 12px;
+    padding: 8px 12px; border-radius: 10px; background: var(--bg); border-left: 4px solid var(--empty); }
+  .lane__label { font-size: 12px; font-weight: 700; color: var(--muted); }
+  .lane__value { font-size: 18px; font-weight: 700; line-height: 1.3; font-variant-numeric: tabular-nums; }
+  .lane__value a { color: inherit; text-decoration: none; }
+  .lane__value a:hover { text-decoration: underline; }
+  .lane__detail { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 12px;
+    color: var(--muted); min-width: 0; overflow-wrap: anywhere; }
+  .lane__value--none { color: var(--empty); }
+  .lane--active { border-left-color: var(--active); }
+  .lane--live { border-left-color: var(--live); }
+  .lane--review { border-left-color: var(--review); background: var(--review-soft); }
+  .lane--warn { border-left-color: var(--warn); background: var(--warn-soft); }
+  .chip { justify-self: start; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+  .chip--review { color: var(--surface); background: var(--review); }
+  .chip--warn { color: var(--surface); background: var(--warn); }
+  .chip--live { color: var(--live); background: var(--live-soft); }
+  .chip--active { color: var(--active); background: var(--active-soft); }
+
+  .notes { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .note { display: flex; gap: 8px; align-items: baseline; font-size: 12px; color: var(--muted); }
+  .note--warn { color: var(--warn); font-weight: 600; }
+  .note__mark { flex: none; width: 16px; height: 16px; border-radius: 50%; display: inline-grid; place-items: center;
+    font-size: 10px; font-weight: 700; background: var(--idle-soft); color: var(--muted); }
+  .note--warn .note__mark { background: var(--warn-soft); color: var(--warn); }
+  footer { color: var(--muted); font-size: 12px; margin-top: 24px; }
+  @media (max-width: 520px) {
+    .tiles { width: 100%; }
+    .tile { flex: 1; min-width: 0; }
+  }
 </style>
 </head>
 <body>
 <main>
-  <h1>Release Status</h1>
-  <p class="meta">生成: ${escapeHtml(generatedAt)}</p>
-  ${summary}
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th scope="col">アプリ</th>
-          <th scope="col">サイト掲載</th>
-          <th scope="col">App Store</th>
-          <th scope="col">最新タグ</th>
-          <th scope="col">App Store Connect</th>
-          <th scope="col">develop</th>
-          <th scope="col">注意</th>
-        </tr>
-      </thead>
-      <tbody>
-${rows.map(renderRow).join('\n')}
-      </tbody>
-    </table>
+  <div class="top">
+    <div>
+      <h1>Release Status</h1>
+      <p class="meta">${escapeHtml(generatedAt)} 時点</p>
+    </div>
+    <div class="tiles">
+      ${tile('live', '公開中', live)}
+      ${tile('review', '審査中', review)}
+      ${tile(warn ? 'warn' : 'ok', warn ? '要確認' : '要確認なし', warn)}
+    </div>
+  </div>
+  <div class="grid">
+${rows.map(renderCard).join('\n')}
   </div>
   <footer>git はローカルの ref を参照しています（fetch はしていません）。App Store は iTunes Lookup API（jp）、審査状況は App Store Connect API（読み取りのみ）から取得。</footer>
 </main>
