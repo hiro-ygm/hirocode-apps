@@ -180,3 +180,9 @@ test('renderHtml はASCの状態とreleaseブランチの有無を出す', () =>
   assert.ok(html.includes('class="badge badge--review">審査待ち'))
   assert.ok(html.includes('release ブランチなし'))
 })
+
+test('要確認が0件でもラベルは「要確認」のまま', () => {
+  const html = renderHtml([makeRow()], 'now')
+  assert.ok(html.includes('<div class="tile tile--ok"><span class="tile__value">0</span><span class="tile__label">要確認</span>'))
+  assert.ok(!html.includes('要確認なし'))
+})
