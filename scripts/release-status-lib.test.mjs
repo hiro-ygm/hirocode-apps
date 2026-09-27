@@ -1,6 +1,13 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { buildWarnings, compareVersions, pickPendingVersion, renderHtml, toVersion } from './release-status-lib.mjs'
+import {
+  buildWarnings,
+  compareVersions,
+  normalizeVersion,
+  pickPendingVersion,
+  renderHtml,
+  toVersion,
+} from './release-status-lib.mjs'
 
 const baseRepo = {
   tag: 'v1.1.0',
@@ -185,4 +192,12 @@ test('要確認が0件でもラベルは「要確認」のまま', () => {
   const html = renderHtml([makeRow()], 'now')
   assert.ok(html.includes('<div class="tile tile--ok"><span class="tile__value">0</span><span class="tile__label">要確認</span>'))
   assert.ok(!html.includes('要確認なし'))
+})
+
+test('normalizeVersion は表示用に3桁へ揃える', () => {
+  assert.equal(normalizeVersion('1.0'), '1.0.0')
+  assert.equal(normalizeVersion('2'), '2.0.0')
+  assert.equal(normalizeVersion('1.2.3'), '1.2.3')
+  assert.equal(normalizeVersion('1.0-beta'), '1.0-beta')
+  assert.equal(normalizeVersion(null), null)
 })

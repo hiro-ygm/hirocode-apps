@@ -8,7 +8,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { runnerImport } from 'vite'
-import { pickPendingVersion, renderHtml } from './release-status-lib.mjs'
+import { normalizeVersion, pickPendingVersion, renderHtml } from './release-status-lib.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const outDir = path.join(root, 'release-status')
@@ -70,7 +70,7 @@ async function readStore(appStoreUrl) {
     const result = (await res.json()).results?.[0]
     if (!result) return { error: 'ストアに見つからない' }
     return {
-      version: result.version,
+      version: normalizeVersion(result.version),
       releaseDate: result.currentVersionReleaseDate?.slice(0, 10) ?? null,
       url: appStoreUrl,
     }
@@ -134,7 +134,7 @@ async function readAsc(repoPath) {
       `/v1/apps/${app.id}/appStoreVersions?filter[platform]=IOS&limit=10&fields[appStoreVersions]=versionString,appVersionState,appStoreState,createdDate`,
     )
     const list = (versions.data ?? []).map((v) => ({
-      version: v.attributes.versionString,
+      version: normalizeVersion(v.attributes.versionString),
       state: v.attributes.appVersionState ?? v.attributes.appStoreState,
       createdDate: v.attributes.createdDate,
     }))
