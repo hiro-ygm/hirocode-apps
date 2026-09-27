@@ -32,6 +32,9 @@ npm run status     # release-status/index.html を生成してブラウザで開
 各アプリのリポジトリが `../<app id>` にある前提。生成物はgitignore済みでデプロイされない。
 gitはローカルのrefを見るだけなので、最新にしたい場合は各リポジトリで `git fetch` しておく。
 
+`npm run dev` 中はヘッダーに「Release Status」リンクが出て、`/release-status/` を開くたびにレポートを再生成して表示する
+（`scripts/dev-release-status.mjs`）。本番ビルドにはリンクもレポートも含まれない。
+
 ## 構成
 
 - `src/data/apps.ts` — アプリデータ（型定義含む）

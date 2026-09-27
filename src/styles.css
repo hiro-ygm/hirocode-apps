@@ -187,6 +187,10 @@ a {
   background: var(--accent-soft);
 }
 
+.site-nav a.site-nav__dev {
+  border: 1px dashed var(--muted);
+}
+
 /* Hero */
 .hero {
   padding: 72px 0 48px;
