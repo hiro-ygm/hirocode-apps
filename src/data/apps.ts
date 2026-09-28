@@ -74,7 +74,7 @@ export const apps: AppInfo[] = [
     icon: nomanIcon,
     platforms: ['ios'],
     status: 'published',
-    version: '1.0.0',
+    version: '1.1.0',
     appStoreUrl: 'https://apps.apple.com/jp/app/id6811882577',
     privacyPolicyUrl: 'https://claude.ai/artifact/LcACgLjJprfhTJDcvd99yJ',
     supportUrl: 'https://claude.ai/artifact/BHVtuzuTpF55AfvqPHtSMs',
