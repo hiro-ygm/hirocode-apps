@@ -21,6 +21,14 @@ npm run preview    # ビルド結果の確認
 `status` は `published`（公開中）/ `review`（審査中）/ `development`（開発中）。
 `appStoreUrl` / `googlePlayUrl` / `privacyPolicyUrl` / `supportUrl` は未設定ならカードに表示されない。
 
+## アプリを公開・更新したとき
+
+1. `src/data/apps.ts` の該当アプリで `status: 'published'`・`version`・`appStoreUrl`（初回公開時）を更新する
+2. `fix/<app id>-<version>` ブランチで commit → `main` へ merge・push（GitHub Pages へ自動デプロイ）
+3. `npm run status` で Release Status を再生成し、警告が出ていないことを確認する
+
+各アプリの `docs/07-release.md` §1a（承認後の手順 5）からもここを参照する。
+
 ## リリース状況レポート（開発者用）
 
 ```bash
