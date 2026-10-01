@@ -1,4 +1,5 @@
 import gohobiIcon from '../assets/icons/gohobi.png'
+import hangultsunagiIcon from '../assets/icons/hangultsunagi.png'
 import kinenbiIcon from '../assets/icons/kinenbi.png'
 import madaaruIcon from '../assets/icons/madaaru.png'
 import nanikiruIcon from '../assets/icons/nanikiru.png'
@@ -105,5 +106,18 @@ export const apps: AppInfo[] = [
     version: '1.0.0',
     privacyPolicyUrl: 'https://claude.ai/artifact/Spn6Qkk2gXyP1NgEq7Jb6d',
     supportUrl: 'https://claude.ai/artifact/9JdHHUBXFy1hG6K8jAkzTK',
+  },
+  {
+    id: 'hangultsunagi',
+    name: 'ハングルつなぎ',
+    tagline: '遊んで覚える韓国語パズル',
+    description:
+      'ハングルのタイルを指でなぞって、隠れた韓国語の単語を探すパズルゲーム。見つけた単語は意味と発音がその場でわかる。',
+    icon: hangultsunagiIcon,
+    platforms: ['ios'],
+    status: 'review',
+    version: '1.0.0',
+    privacyPolicyUrl: 'https://claude.ai/artifact/PYVg1rQ8UPtGNniM6XRtm1',
+    supportUrl: 'https://claude.ai/artifact/V9mYFTGHTBKpxNt8YNTNS6',
   },
 ]
