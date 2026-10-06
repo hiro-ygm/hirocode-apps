@@ -117,7 +117,7 @@ export const apps: AppInfo[] = [
     platforms: ['ios'],
     status: 'review',
     version: '1.0.0',
-    privacyPolicyUrl: 'https://claude.ai/artifact/PYVg1rQ8UPtGNniM6XRtm1',
-    supportUrl: 'https://claude.ai/artifact/V9mYFTGHTBKpxNt8YNTNS6',
+    privacyPolicyUrl: 'https://hiro-ygm.github.io/hirocode-apps/hangultsunagi/privacy/',
+    supportUrl: 'https://hiro-ygm.github.io/hirocode-apps/hangultsunagi/support/',
   },
 ]

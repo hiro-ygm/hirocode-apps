@@ -21,6 +21,12 @@ npm run preview    # ビルド結果の確認
 `status` は `published`（公開中）/ `review`（審査中）/ `development`（開発中）。
 `appStoreUrl` / `googlePlayUrl` / `privacyPolicyUrl` / `supportUrl` は未設定ならカードに表示されない。
 
+## アプリの公開ページ（プライバシーポリシー・サポート）
+
+`public/<app id>/privacy/index.html` と `public/<app id>/support/index.html` に置く（ビルド時に `public/` がそのまま配信される）。
+URL は `https://hiro-ygm.github.io/hirocode-apps/<app id>/privacy/` など。
+中身は各アプリのリポジトリで生成する（例: hangultsunagi は `python3 design/scripts/build_web_pages.py --site ../hirocode-apps`）。ここで直接編集しない。
+
 ## アプリを公開・更新したとき
 
 1. `src/data/apps.ts` の該当アプリで `status: 'published'`・`version`・`appStoreUrl`（初回公開時）を更新する
