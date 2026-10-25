@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg: #F4F1EC; --surface: #FFFFFF; --surface-muted: #F8F5F0;
+    --ink: #1C2B3A; --text: #2A3846; --muted: #5E6878; --accent: #C2401C; --primary: #F25C32;
+    --shadow: 0 8px 22px rgba(28, 43, 58, 0.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #141A22; --surface: #1C2430; --surface-muted: #232D3A;
+      --ink: #F4F6F8; --text: #DCE2E8; --muted: #9AA3B2; --accent: #FF8A62; --primary: #FF6A3D;
+      --shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+      --bg: #141A22; --surface: #1C2430; --surface-muted: #232D3A;
+      --ink: #F4F6F8; --text: #DCE2E8; --muted: #9AA3B2; --accent: #FF8A62; --primary: #FF6A3D;
+      --shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", system-ui, sans-serif;
+    font-size: 15px; line-height: 1.9; -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); }
+  .page { max-width: 680px; margin: 0 auto; padding-inline: 16px; padding-block: 40px 40px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; color: var(--ink); }
+  h1 { font-size: clamp(24px, 6vw, 30px); font-weight: 800; line-height: 1.4; margin: 28px 0 6px; color: var(--ink); letter-spacing: -0.01em; text-wrap: balance; }
+  .lede { color: var(--muted); margin: 0; }
+  nav.toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0 8px; }
+  nav.toc a {
+    display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border-radius: 999px;
+    background: var(--surface); box-shadow: var(--shadow); color: var(--ink);
+    text-decoration: none; font-weight: 700; font-size: 14px;
+  }
+  nav.toc a:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+  .card { background: var(--surface); border-radius: 22px; padding: 24px 20px; margin-top: 18px; box-shadow: var(--shadow); display: grid; gap: 18px; }
+  .card h2 { font-size: 20px; font-weight: 800; margin: 0; color: var(--ink); }
+  .card h3 { font-size: 16px; font-weight: 700; margin: 0 0 2px; color: var(--ink); }
+  .card p { margin: 0; }
+  .meta { color: var(--muted); font-size: 13px; text-align: right; }
+  .contact { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+  .contact .label { font-size: 13px; color: var(--muted); }
+  .contact .email { font-size: 17px; font-weight: 700; color: var(--ink); user-select: all; overflow-wrap: anywhere; }
+  .mail {
+    display: inline-flex; align-items: center; min-height: 44px; padding: 0 20px; border-radius: 999px;
+    background: var(--primary); color: #FFFFFF; font-weight: 700; font-size: 14px; text-decoration: none;
+  }
+  .mail:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  details { background: var(--surface-muted); border-radius: 14px; }
+  details summary { cursor: pointer; list-style: none; padding: 14px 16px; font-weight: 700; color: var(--ink); display: flex; gap: 10px; align-items: baseline; }
+  details summary::-webkit-details-marker { display: none; }
+  details summary::before { content: "Q"; color: var(--primary); font-weight: 800; flex: none; }
+  details .a { padding: 0 16px 16px 36px; }
+  .faq { display: grid; gap: 10px; }
+  footer { margin-top: 40px; color: var(--muted); font-size: 13px; display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: space-between; }
+</style>
+<title>あと5分 サポート</title>
+</head>
+<body>
+<main class="page">
+  <div class="brand"><svg aria-hidden="true" width="28" height="28" viewBox="0 0 120 120">
+  <defs><linearGradient id="flame" x1="20" y1="100" x2="100" y2="16" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#FFB15A"/><stop offset="0.45" stop-color="#FF6A38"/><stop offset="1" stop-color="#FF4336"/>
+  </linearGradient></defs>
+  <circle cx="60" cy="64" r="30" stroke="url(#flame)" stroke-width="11" stroke-linecap="round" fill="none" stroke-dasharray="150 48" transform="rotate(24 60 64)"/>
+  <path d="M82 34c5 7 3 14-2 16 5-2 8 5 3 10-6-5-5-13-1-26z" fill="#FF4E34"/>
+  <rect x="56" y="46" width="8" height="22" rx="4" fill="var(--ink)"/>
+  <rect x="42" y="60" width="22" height="8" rx="4" fill="var(--ink)"/>
+</svg><span>あと5分</span></div>
+  <h1>お問い合わせ・よくある質問</h1>
+  <p class="lede">不具合のご報告やご要望は、メールでお送りください。お使いの iPhone の機種と iOS のバージョンを添えていただけると助かります。</p>
+  <section class="card" aria-labelledby="contact-title">
+    <h2 id="contact-title">お問い合わせ</h2>
+    <div class="contact">
+      <div>
+        <div class="label">メールアドレス</div>
+        <div class="email">hirocode.dev@gmail.com</div>
+      </div>
+      <a class="mail" href="mailto:hirocode.dev@gmail.com?subject=%E3%81%82%E3%81%A85%E5%88%86%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6">メールを送る</a>
+    </div>
+  </section>
+  <section class="card" aria-labelledby="faq-title">
+    <h2 id="faq-title">よくある質問</h2>
+    <div class="faq">
+      <details><summary>時間になっても気づけませんでした。</summary><p class="a">iPhone の「設定」→「あと5分」で、通知（iOS 26 以上ではアラームも）が許可されているか確かめてください。iOS 26 以上でアラームを許可していれば、消音モードでもお知らせします。iOS 26 未満では、消音モードや集中モードのときの鳴り方は iPhone の設定に従います。</p></details>
+      <details><summary>電車の中などで、音を出さずに知らせてほしいです。</summary><p class="a">ホーム画面の鳴らし方で「振動のみ」を選んでから、時間を選んでください。iOS 26 以上でアラームを許可していれば、音を出さずに、止めるまで振動します。</p></details>
+      <details><summary>5 / 10 / 15 / 30 / 60 分以外の時間を使いたいです。</summary><p class="a">設定 →「プリセット」で、それぞれのボタンの分数を 1〜180 分の間で変えられます。</p></details>
+      <details><summary>途中でやめるには？</summary><p class="a">「やめる」を押し、確認で「やめる」を選んでください。予約していたお知らせも取り消されます。</p></details>
+      <details><summary>データは集めていますか？</summary><p class="a">集めていません。設定はお使いの iPhone の中だけに保存し、インターネットには送信しません。</p></details>
+    </div>
+  </section>
+  <footer>
+    <span>© 2026 hirocode</span>
+    <span><a href="../privacy/">プライバシーポリシー・利用規約</a></span>
+  </footer>
+</main>
+</body>
+</html>
